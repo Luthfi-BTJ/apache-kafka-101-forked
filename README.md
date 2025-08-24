@@ -11,8 +11,6 @@
     docker ps
     ```
 
-    Ensure the containers are running
-
 - Access the Kafka UI at http://localhost:8080
 
 
@@ -57,7 +55,8 @@
     ```
 
 
-# Kafka Python Client (Simple Producer & Consumer)
+# Kafka Python Client (Simple Producer, Consumer, and Transformer)
+Open a terminal in the project directory and run the following commands as needed:
 
 - Install the dependencies
     ```
@@ -66,10 +65,19 @@
 
 - Run the producer
     ```
-    python examples/main.py producer
+    python examples\simple_client.py producer
     ```
+    Type messages and press Enter to send. Press Enter on an empty line or Ctrl+C to stop.
 
 - Run the consumer
     ```
-    python examples/main.py consumer test-group-python
+    python examples\simple_client.py consumer [your TOPIC_NAME name]
     ```
+    This will read messages from `test-topic`
+
+- Run the transformer
+    ```
+    python examples\simple_client.py transformer [your TRANSFORMED_TOPIC name]
+    ```
+    This will read from `test-topic`, transform messages into uppercase, and send them to `transformed-topic`.
+
