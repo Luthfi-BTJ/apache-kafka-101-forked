@@ -4,7 +4,7 @@ import sys
 from kafka import KafkaProducer, KafkaConsumer
 from kafka.errors import KafkaError
 
-TOPIC_NAME = "mytopic"
+TOPIC_NAME = "test-topic"
 BROKER = "localhost:9092"
 
 
@@ -67,10 +67,40 @@ def run_consumer(group_id: str):
     finally:
         consumer.close()
 
+def run_transformer(group_id: str):
+    """Consumes, transforms, and produces messages to a new topic."""
+    consumer = KafkaConsumer(
+        TOPIC_NAME,
+        bootstrap_servers=[BROKER],
+        auto_offset_reset="earliest",
+        enable_auto_commit=False,
+        group_id=group_id,
+    )
+    producer = KafkaProducer(
+        bootstrap_servers=[BROKER],
+        acks=1,
+    )
+    TRANSFORMED_TOPIC = "transformed-topic"
+
+    try:
+        for message in consumer:
+            original = message.value.decode("utf-8")
+            # Example transformation: uppercase
+            transformed = original.upper()
+            # Produce to new topic
+            producer.send(TRANSFORMED_TOPIC, value=transformed.encode("utf-8"))
+            print(f"Transformed and sent: {transformed}")
+            consumer.commit()
+    except KeyboardInterrupt:
+        print("\nTransformer stopped.")
+    finally:
+        consumer.close()
+        producer.flush()
+        producer.close()
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python app.py [producer|consumer <groupId>]")
+        print("Usage: python app.py [producer|consumer <groupId>|transformer]")
         sys.exit(1)
 
     role = sys.argv[1]
@@ -82,5 +112,10 @@ if __name__ == "__main__":
             print("Usage: python app.py consumer <groupId>")
             sys.exit(1)
         run_consumer(sys.argv[2])
+    elif role == "transformer":
+        if len(sys.argv) < 3:
+            print("Usage: python app.py transformer <groupId>")
+            sys.exit(1)
+        run_transformer(sys.argv[2])
     else:
         print("Unknown role:", role)
